@@ -21,8 +21,15 @@ class CartPoleEnv(object):
         self.max_angle = 12 * 2 * math.pi / 360
         self.max_x = 2.4
 
-        self.state = None
-        self.done = False
+        # Initialise environment for learning
+        self.state = self.reset()
+
+        # Define action and state spaces for learners to interact with
+        self.action_space = {'left': 0, 'right': 1}
+        self.state_space = {'x': type(state[0]),
+                            'x_dot': type(state[1]),
+                            'theta': type(state[2]),
+                            'theta_dot': type(state[3])}
 
     def set_seed(self, seed=None):
         if seed is None:
@@ -45,7 +52,7 @@ class CartPoleEnv(object):
         - Positive F-direction: right
         - Action 0 is left, 1 is right
         """
-        assert action in [0, 1], "action must be 0 (left) or 1 (right)"
+        assert action in (0, 1), "action must be 0 (left) or 1 (right)"
 
         # Check if already finished
         if self.done:
