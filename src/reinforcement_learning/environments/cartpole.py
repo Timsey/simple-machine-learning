@@ -4,6 +4,7 @@ CartPole environment for reinforcement learning.
 
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class CartPoleEnv(object):
@@ -18,18 +19,19 @@ class CartPoleEnv(object):
         self.tau = 0.01  # timestep of simulation
 
         # Failure conditions
-        self.max_angle = 12 * 2 * math.pi / 360
+        self.max_theta = 12 * 2 * math.pi / 360
         self.max_x = 2.4
 
         # Initialise environment for learning
         self.state = self.reset()
 
         # Define action and state spaces for learners to interact with
-        self.action_space = {'left': 0, 'right': 1}
-        self.state_space = {'x': type(state[0]),
-                            'x_dot': type(state[1]),
-                            'theta': type(state[2]),
-                            'theta_dot': type(state[3])}
+        self.action_space = [0, 1]  # left and right
+        self.state_space = {'x': type(self.state[0]),
+                            'x_dot': type(self.state[1]),
+                            'theta': type(self.state[2]),
+                            'theta_dot': type(self.state[3])}
+        self.max_reward_per_episode = 1.0
 
     def set_seed(self, seed=None):
         if seed is None:
@@ -107,3 +109,22 @@ class CartPoleEnv(object):
         self.state = np.random.uniform(-0.05, 0.05, size=4)
         self.done = False
         return self.state
+
+    def render_obs(self, obs):
+        # TODO: Make this do an actual animation
+        x, _, theta, _ = obs
+        sin_theta, cos_theta = math.sin(theta), math.cos(theta)
+
+        # Set cart height
+        y = self.length / 2
+
+        # Top of pole
+        x_pole_top = x + 2 * self.length * sin_theta
+        y_pole_top = y + 2 * self.length * cos_theta
+
+        plt.plot([x, x_pole_top], [y, y_pole_top])
+        plt.ylim(0, y + 2.5 * self.length)
+        plt.xlim(- self.length, self.length)
+        plt.show(block=False)
+        plt.pause(0.08)
+        plt.close()
