@@ -1,3 +1,19 @@
+"""
+Simple feedforward (fully-connected) neural network on MNIST written in numpy.
+
+Example run:
+$ python3 vanilla_nn.py
+
+TODO:
+- Maybe remove ReLU in final layer
+- Add option for leaky ReLU
+- Data normalisation with stddev instead of (max - min)
+- Use a 1-cycle learning rate policy (first up, then down)
+- Write visual checks for every layer
+- Add dropout (maybe with high keep probability)
+- Maybe add actual weight decay
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from mnist import MNIST
@@ -312,6 +328,24 @@ class VanillaNN(object):
     def _momentum_update(self, w_updates, b_updates):
         for i, w_update, b_update in zip(range(len(w_updates)), w_updates,
                                          b_updates):
+            # Note there are multiple ways to implement momentum. Two more
+            # options are:
+            # 1) Apply learning rate in calculating update instead of in
+            # calculating the running average.
+            # self.w_mom[i] = (self.momentum * self.w_mom[i] - w_update)
+            # self.b_mom[i] = (self.momentum * self.b_mom[i] - b_update)
+            # self.weights[i] += self.rate * self.w_mom[i]
+            # self.biases[i] += self.rate * self.b_mom[i]
+            #
+            # 2) Additionally reparameterise momentum value: essentially
+            # equivalent to 1).
+            # self.w_mom[i] = (self.momentum * self.w_mom[i] -
+            #                  (1 - self.momentum) * w_update)
+            # self.b_mom[i] = (self.momentum * self.b_mom[i] -
+            #                  (1 - self.momentum) * b_update)
+            # self.weights[i] += self.rate * self.w_mom[i]
+            # self.biases[i] += self.rate * self.b_mom[i]
+
             # Update accumulated momentum
             self.w_mom[i] = (self.momentum * self.w_mom[i] -
                              self.rate * w_update)
