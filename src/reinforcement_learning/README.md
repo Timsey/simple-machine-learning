@@ -1,4 +1,4 @@
-# reinforcement_learning
+# Simple reinforcement learning
 Contains implementations of simple reinforcement learning algorithms.
 
 ## List of directories
