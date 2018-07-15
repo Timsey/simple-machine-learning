@@ -9,6 +9,10 @@ import matplotlib.pyplot as plt
 
 class CartPoleEnv(object):
     def __init__(self):
+        """
+        Initialise the CartPole environment.
+        """
+
         self.gravity = 9.81
         self.mass_cart = 1.0
         self.mass_pole = 0.1
@@ -27,18 +31,35 @@ class CartPoleEnv(object):
 
         # Define action and state spaces for learners to interact with
         self.action_space = [0, 1]  # left and right
-        self.state_space = {'x': type(self.state[0]),
-                            'x_dot': type(self.state[1]),
-                            'theta': type(self.state[2]),
-                            'theta_dot': type(self.state[3])}
+        self.state_space = {'state_type': 'continuous',
+                            'feature_size': 4}
+        # Example for Frozen Lake
+        # self.action_space = [1, 2, 3, 4]
+        # self.state_space = {'state_type': 'discrete',
+        #                     'feature_size': 16,
+        #                     'feature_type': 'position'}
         self.max_reward_per_episode = 1.0
 
     def set_seed(self, seed=None):
+        """
+        Sets the random seed by calling np.random.seed(seed) and sets
+        self.seed to the value of seed.
+        """
+
         if seed is None:
             seed = 0
-        self.seed = np.random.seed(seed)
+        np.random.seed(seed)
+        self.seed = seed
 
     def get_seed(self):
+        """
+        Get the random seed. Note that this will fail to produce the correct
+        seed if the seed was not set through this class' get_seed() function.
+
+        Returns:
+        - self.seed: last set random seed.
+        """
+
         return self.seed
 
     def step(self, action):
@@ -53,7 +74,18 @@ class CartPoleEnv(object):
         - Positive theta-direction: clockwise
         - Positive F-direction: right
         - Action 0 is left, 1 is right
+
+        Arguments:
+        - action: one of 0 or 1, represents the action to take (left or right).
+
+        Returns:
+        - self.state: np.array, represents the current state of the
+                      environment.
+        - reward: float, the reward earned during this step.
+        - done: bool, whether the episode should finish after this step (i.e.
+                the pole has dropped too far).
         """
+
         assert action in (0, 1), "action must be 0 (left) or 1 (right)"
 
         # Check if already finished
@@ -106,13 +138,30 @@ class CartPoleEnv(object):
         return self.state, reward, done
 
     def reset(self):
+        """
+        Resets the enviroment. Should be called after every episode of a
+        learning procedure.
+
+        Returns:
+        - self.state: np.array, represents the current state of the
+                      environment (after reset).
+        """
+
         self.state = np.random.uniform(-0.05, 0.05, size=4)
         self.done = False
         return self.state
 
-    def render_obs(self, obs):
+    def render_state(self, state):
+        """
+        Renders an environment state visually. Currently shows every state
+        separately (i.e. no animation).
+
+        Arguments:
+        - state: np.array, represents the current state of the
+               environment.
+        """
         # TODO: Make this do an actual animation
-        x, _, theta, _ = obs
+        x, _, theta, _ = state
         sin_theta, cos_theta = math.sin(theta), math.cos(theta)
 
         # Set cart height
