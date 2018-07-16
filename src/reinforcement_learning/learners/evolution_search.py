@@ -1,6 +1,8 @@
 """
-Agent that learns by random search. Works for environments with action spaces
-of size 2 (binary).
+Agent that learns by evolution search.
+
+Based on blog post by Moustafa Alzantot:
+https://becominghuman.ai/genetic-algorithm-for-reinforcement-learning-a38a5612c4dc
 """
 
 import sys
@@ -154,7 +156,7 @@ class EvolutionSearch(BaseLearner):
                         policy in policy_pop]
         # That policy is the winner!
         win_ind = np.argmax(final_scores)
-        self.best_score = final_socres[win_ind]
+        self.best_score = final_scores[win_ind]
         self.best_policy = policy_pop[win_ind]
 
 

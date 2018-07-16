@@ -21,8 +21,7 @@ class BaseLearner(object):
         """
 
         self.env = env
-        self.action_space = self.env.action_space
-        self.state_space = self.env.state_space
+        self.env_info = env.env_info
 
         self.best_policy = None
         self.best_score = 0
@@ -35,8 +34,8 @@ class BaseLearner(object):
     def policy_to_action(self, policy, obs):
         """
         Gets an action from a policy. Currently works for policies that
-        define hyperplanes (continuous, e.g. binary CartPole), and policies
-        defined on a grid (discrete, e.g. FrozenLake).
+        define binary hyperplanes (binary, e.g. binary CartPole), and policies
+        defined on a grid (grid, e.g. FrozenLake).
 
         Arguments:
         - policy: np.array, represents the policy to run.
@@ -46,16 +45,24 @@ class BaseLearner(object):
         - action: int, represents action to take.
         """
 
-        if self.state_space['state_type'] == 'continuous':
-            # In the continuous case, we separate actions using a hyperplane
+        if self.env_info['policy_type'] == 'binary':
+            # A policy defines an action for every state vector
+            # An action is chosen according to a simple hyperplane
             if np.dot(policy[:obs.size], obs) + policy[-1] > 0:
-                return self.action_space[0]
+                ind = 0
             else:
-                return self.action_space[1]
-        elif self.state_space['state_type'] == 'discrete':
-            # In the discrete case, we separate actions by grid
-            # obs is a position index in the grid
+                ind = 1
+            return self.env_info['action_space'][ind]
+
+        elif self.env_info['policy_type'] == 'grid':
+            # A policy defines an action for every point in the grid
+            # obs (observation) is a position index in the grid
             return policy[obs]
+
+        elif self.env_info['policy_type'] == 'function':
+            # A policy is a function that maps states to actions
+            # Every state gets assigned an action (e.g. through softmax)
+            raise NotImplementedError('This state type is not yet supported.')
 
     def episode(self, policy, do_show=False):
         """

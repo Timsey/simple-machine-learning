@@ -29,15 +29,19 @@ class CartPoleEnv(object):
         # Initialise environment for learning
         self.state = self.reset()
 
-        # Define action and state spaces for learners to interact with
-        self.action_space = [0, 1]  # left and right
-        self.state_space = {'state_type': 'continuous',
-                            'feature_size': 4}
-        # Example for Frozen Lake
-        # self.action_space = [1, 2, 3, 4]
-        # self.state_space = {'state_type': 'discrete',
-        #                     'feature_size': 16,
-        #                     'feature_type': 'position'}
+        # Define the info the learners need to interact with the environment
+        self.env_info = {'policy_type': 'binary',  # separating hyperplane
+                         'action_space':  [0, 1],  # left and right
+                         'state_size': 4}  # x, x_dot, theta, theta_dot
+        # # Example for Frozen Lake
+        # self.env_info = {'policy_type': 'grid',
+        #                  'action_space': [1, 2, 3, 4],
+        #                  'state_size': 16}
+        # # Example for (e.g.) Pong through image instead of specific features
+        # self.env_info = {'policy_type': 'function',
+        #                  'action_space': [0, 1],
+        #                  'state_size': IMAGE_DIMENSION}
+
         self.max_reward_per_episode = 1.0
 
     def set_seed(self, seed=None):

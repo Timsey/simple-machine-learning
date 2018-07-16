@@ -1,5 +1,6 @@
 """
 Simple feedforward (fully-connected) neural network on MNIST written in numpy.
+Gets about 90% train, validation, and test accuracy with current parameters.
 
 Example run:
 $ python3 vanilla_nn.py
@@ -7,7 +8,6 @@ $ python3 vanilla_nn.py
 TODO:
 - Maybe remove ReLU in final layer
 - Add option for leaky ReLU
-- Data normalisation with stddev instead of (max - min)
 - Use a 1-cycle learning rate policy (first up, then down)
 - Write visual checks for every layer
 - Add dropout (maybe with high keep probability)
@@ -31,10 +31,10 @@ VALIDATION_FRAC = 0.3
 
 # Training parameters
 NUM_EPOCHS = 5
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 LEARNING_RATE = 1e-4
 LEARNING_RATE_DECAY = 0.99
-MOMENTUM = 0.98
+MOMENTUM = 0.95
 REGULARISATION = 1e-5
 
 
@@ -80,7 +80,18 @@ class VanillaNN(object):
             print('- hidden{}: {}'.format(i + 1, num))
         print('- output: {:>3}\n'.format(num_out))
 
-    def load_data(self, data_path=None, val_frac=None, testing=False):
+    def prepare_data(self, data_path=None, val_frac=None, testing=False):
+        """
+        Load, format and normalise MNIST data.
+
+        Arguments:
+        - data_path: str, where to find the data on disk.
+        - val_frac: int or float, number or fraction of samples to use for
+                    the validation set, respectively. There is also a
+                    separate training set.
+        - testing: bool, whether we're doing a testing run (fewer samples
+                   will be used to speed everything up).
+        """
         # Overwrite defaults if given
         if data_path is not None:
             self.data_path = data_path
@@ -90,7 +101,7 @@ class VanillaNN(object):
         # Data location
         mndata = MNIST(self.data_path)
 
-        if testing:  # Create small datasets from mnist testing data
+        if testing:  # Create smaller datasets from mnist testing data
             X_use, y_use = mndata.load_testing()
             samps = len(X_use)
             perm = np.random.permutation(samps)
@@ -107,9 +118,9 @@ class VanillaNN(object):
 
         print('Preparing data for training...\n')
         # Shape input to (samples x features) and normalise
-        X_mean, X_max, X_min = np.mean(X_temp), np.max(X_temp), np.min(X_temp)
-        X_temp = (np.array(X_temp) - X_mean) / (X_max - X_min)
-        self.X_test = (np.array(self.X_test) - X_mean) / (X_max - X_min)
+        X_mean, X_stddev = np.mean(X_temp), np.sqrt(np.var(X_temp))
+        X_temp = (np.array(X_temp) - X_mean) / X_stddev
+        self.X_test = (np.array(self.X_test) - X_mean) / X_stddev
 
         # One-hot the labels
         y_temp = np.eye(self.num_out)[np.array(y_temp)]
@@ -119,7 +130,16 @@ class VanillaNN(object):
         perm = np.random.permutation(X_temp.shape[0])
         X_temp = X_temp[perm, :]
         y_temp = y_temp[perm, :]
-        val_ind = int(self.val_frac * X_temp.shape[0])
+
+        # Get size of validation set
+        if val_frac < 1:
+            assert val_frac >= 0, 'val_frac must be non-negative.'
+            val_ind = int(self.val_frac * X_temp.shape[0])
+        else:
+            assert isinstance(val_ind, int), 'val_frac must be integer if > 1.'
+            val_ind = val_frac
+
+        # Create train and validation set
         self.X_train = X_temp[val_ind:, :]
         self.y_train = y_temp[val_ind:, :]
         self.X_val = X_temp[:val_ind, :]
@@ -128,6 +148,10 @@ class VanillaNN(object):
     def train(self, num_epochs=None, batch_size=None, learning_rate=None,
               learning_rate_decay=None, momentum=None, regularisation=None,
               do_momentum=True, learning_curve=True):
+        """
+        Trains the network using mini-batch stochastic gradient descent.
+        """
+
         # Overwrite default training parameters if given
         if num_epochs is not None:
             self.num_epochs = num_epochs
@@ -162,6 +186,10 @@ class VanillaNN(object):
                 self.val_losses.append(self._Xy_loss(self.X_val,
                                                      self.y_val))
 
+            # Permute training set every epoch
+            perm = np.random.permutation(self.X_train.shape[0])
+            self.X_train = self.X_train[perm, :]
+            self.y_train = self.y_train[perm, :]
             # Get mini-batches
             batch_inds = range(0, self.X_train.shape[0], self.batch_size)
             # Mini-batch SGD
@@ -181,6 +209,9 @@ class VanillaNN(object):
             self.rate *= self.decay
 
     def accuracy(self):
+        """
+        Calculates accuracy of prediction on train, validation and test set.
+        """
         train_acc = self._Xy_accuracy(self.X_train, self.y_train)
         val_acc = self._Xy_accuracy(self.X_val, self.y_val)
         test_acc = self._Xy_accuracy(self.X_test, self.y_test)
@@ -416,11 +447,11 @@ if __name__ == "__main__":
     nn = VanillaNN(num_in=784, num_hidden=[100, 50], num_out=10)
 
     # Load data
-    nn.load_data(data_path=None, val_frac=.3, testing=False)
+    nn.prepare_data(data_path=None, val_frac=.3, testing=False)
 
     # Do training
-    nn.train(num_epochs=5, batch_size=32, learning_rate=0.0001,
-             learning_rate_decay=0.99, momentum=0.98, regularisation=1e-5,
+    nn.train(num_epochs=5, batch_size=16, learning_rate=1e-4,
+             learning_rate_decay=0.99, momentum=0.95, regularisation=1e-5,
              do_momentum=True, learning_curve=True)
 
     # nn._grad_check()

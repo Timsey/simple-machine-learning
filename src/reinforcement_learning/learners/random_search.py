@@ -1,6 +1,8 @@
 """
-Agent that learns by random search. Works for environments with action spaces
-of size 2 (binary).
+Agent that learns by random search.
+
+Based on blog post by Moustafa Alzantot:
+https://medium.com/@m.alzantot/deep-reinforcement-learning-demystified-episode-0-2198c05a6124
 """
 
 import sys
@@ -31,15 +33,15 @@ class RandomSearch(BaseLearner):
         - policy: np.array, represents the generated policy.
         """
 
-        if self.state_space['state_type'] == 'continuous':
+        if self.env_info['policy_type'] == 'binary':
             # Random policy parametrised by a vector w
             # Learns a decision boundary (state w^T) on binary action space
-            policy = np.random.uniform(-1, 1, size=self.state_space[
-                'feature_size'] + 1)
-        elif self.state_space['state_type'] == 'discrete':
+            policy = np.random.uniform(-1, 1, size=self.env_info[
+                'state_size'] + 1)
+        elif self.env_info['policy_type'] == 'grid':
             # Random policy that gives an action (int) for every possible state
             policy = np.random.choice(self.action_space,
-                                      size=self.state_space['feature_size'])
+                                      size=self.env_info['state_size'])
         return policy
 
     def train(self, num_policies=None, max_t=None):
