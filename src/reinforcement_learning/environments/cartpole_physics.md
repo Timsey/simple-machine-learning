@@ -50,6 +50,6 @@ Our pole has two kinetic energy components: translational and rotational. The tr
 
 Note that the diagram doesn't yet include the translational velocity $\dot{x}$. The total translational velocity $v_pole$ is given by the Pythagorean theorem as $v_pole^2 = v_pole_x^2 + v_pole_y^2$. 
 
-From the diagram we read that $v_pole_y = v_y = - L \dot{\theta} \cos{\theta}$, and $v_pole_x = \dot{x} + v_x = \dot{x} + L \dot{\theta} \sin{\theta}$. Thus we find that:
+From the diagram we read that $v_pole_y = v_y = L \dot{\theta} \cos{\theta}$, and $v_pole_x = \dot{x} + v_x = \dot{x} + L \dot{\theta} \sin{\theta}$. Thus we find that:
 
 $$v^2 = L^2 \dot{\theta}^2 + \dot{x}^2 + 2 L \sin{\theta} \dot{x} \dot{\theta}$$
