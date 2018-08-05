@@ -105,3 +105,6 @@ venv.bak/
 
 # some data
 *.gz
+
+# diagrams
+*.xml
