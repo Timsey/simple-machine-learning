@@ -102,10 +102,6 @@ class CartPoleEnv(object):
         state = self.state
         x, x_dot, theta, theta_dot = state
 
-        # Update position using velocity in previous step
-        x = x + x_dot * self.tau
-        theta = theta + theta_dot * self.tau
-
         # Defines force direction
         force = self.force if action == 1 else -self.force
 
@@ -115,16 +111,25 @@ class CartPoleEnv(object):
         common = (force + self.mass_length_pole * sin_theta *
                   theta_dot ** 2) / self.mass_total
 
-        # Update acceleration
+        # Update acceleration using previous state
+        # NOTE: 7/6 in denominator below is different from 4/3 in OpenAI Gym
+        # Difference is due to different result for moment of inertia
+        # of the pole, which may be caused by an inconsistent definition of
+        # self.length (full length for angular momentum, half-length
+        # everywhere else).
         theta_acc = ((self.gravity * sin_theta - cos_theta * common) /
-                     (4.0 * self.length / 3.0 - self.mass_length_pole *
+                     (7.0 * self.length / 3.0 - self.mass_length_pole *
                      cos_theta ** 2 / self.mass_total))
         x_acc = (common - self.mass_length_pole * cos_theta * theta_acc /
                  self.mass_total)
 
-        # Update velocity
+        # Update velocity using acceleration
         x_dot = x_dot + x_acc * self.tau
         theta_dot = theta_dot + theta_acc * self.tau
+
+        # Update position using velocity
+        x = x + x_dot * self.tau
+        theta = theta + theta_dot * self.tau
 
         self.state = np.array((x, x_dot, theta, theta_dot))
 
