@@ -258,7 +258,6 @@ class VanillaNN(object):
         self.z = [X_batch]
         self.act = []
 
-        # print('input', self.z[0][0, :])
         for in_val, weight, bias in zip(self.z, self.weights, self.biases):
             z = np.dot(in_val, weight) + bias
             act = self._relu(z)

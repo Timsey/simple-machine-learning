@@ -4,25 +4,10 @@ from utils import create_1d_dummy_data
 np.random.seed(0)
 
 NUM_ITERS = 100
+SIZE = [10000, 20000, 10000]
 MODE = 'gauss'
 NUM_LATENT = 3
 DUMMY_DATA_PARAMS = [[1, 1], [3, 2], [5, 1]]
-
-
-# def create_dummy_data(data_params, mode):
-#     """
-#     Creates dummy data given some model parameters.
-#
-#     Returns: numpy array of data.
-#     """
-#     if mode == 'uni_gauss':
-#         data = np.array([np.random.normal(loc=data_params[i][0],
-#                                           scale=data_params[i][1],
-#                                           size=50000)
-#                          for i in range(len(data_params))]).flatten()
-#     else:
-#         raise NotImplementedError("Only available mode is 'gaussian'.")
-#     return data
 
 
 def create_model_params(data, num_latent, mode):
@@ -112,14 +97,14 @@ def maximisation(data, likelihoods, mode):
 
 if __name__ == '__main__':
     # Create data and initial model parameters
-    data = create_1d_dummy_data(DUMMY_DATA_PARAMS, mode=MODE, size=5000)
-    data = data.flatten()
-    params = create_model_params(data, NUM_LATENT, MODE)
+    X = create_1d_dummy_data(DUMMY_DATA_PARAMS, mode=MODE, size=SIZE)
+    X = X.flatten()
+    params = create_model_params(X, NUM_LATENT, MODE)
 
     # Iterate
     for t in range(NUM_ITERS):
-        likelihoods = expectation(data, params, MODE)
-        params = maximisation(data, likelihoods, MODE)
+        likelihoods = expectation(X, params, MODE)
+        params = maximisation(X, likelihoods, MODE)
 
     print('Actual model parameters: {}'.format(DUMMY_DATA_PARAMS))
     print('Final model parameters: {}'.format(params))

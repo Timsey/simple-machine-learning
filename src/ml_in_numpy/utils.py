@@ -50,11 +50,8 @@ def create_1d_dummy_data(data_params, labeled=False, mode='gauss', size=1000):
     else:
         raise NotImplementedError("Only available mode is 'gauss'.")
 
-    # Reshape data to (N, 1) (either from (N,) or
-    # from (len(data_params), sizes))
-    if len(data.shape) == 1:
-        data = data.reshape(-1, 1)
-    data = data.reshape(-1, data.shape[-1])
+    # Combine arrays into one and reshape to (N, 1)
+    data = np.concatenate(data, axis=0).reshape(-1, 1)
 
     # Create labels and return tuple of (data, labels) if 'labeled' is True
     if labeled:
@@ -91,7 +88,7 @@ def create_nd_dummy_data(data_params, labeled=False, mode='gauss', size=1000):
 
     # -------------
     # NOTE: Between lines is the only part that is different from 1d data
-    # generator (besides mode). Generators should probably be combined.
+    # generator (besides mode). Data creators should probably be combined.
     assert isinstance(data_params[0], list), ("data_params must be a list "
                                               "of lists.")
     # Make data_params a list of lists of lists for consistency
@@ -110,9 +107,9 @@ def create_nd_dummy_data(data_params, labeled=False, mode='gauss', size=1000):
     # Check whether size and data_params are consistent
     if not isinstance(size, int):
         assert isinstance(size, list), "size must be an integer or list."
-        assert len(size) == len(data_params), ("size and data_params must have "
-                                               "the same length if size is a "
-                                               "list.")
+        assert len(size) == len(data_params), ("size and data_params must "
+                                               "have the same length if size "
+                                               "is a list.")
 
     if mode == 'gauss':
         data = np.array([np.random.multivariate_normal(mean=data_params[i][0],
@@ -122,11 +119,8 @@ def create_nd_dummy_data(data_params, labeled=False, mode='gauss', size=1000):
     else:
         raise NotImplementedError("Only available mode is 'gauss'.")
 
-    # Reshape data to (N, 1) (either from (N,) or
-    # from (len(data_params), sizes))
-    if len(data.shape) == 1:
-        data = data.reshape(-1, 1)
-    data = data.reshape(-1, data.shape[-1])
+    # Combine arrays into one and reshape to (N, num_dims)
+    data = np.concatenate(data, axis=0).reshape(-1, data.shape[-1])
 
     if labeled:
         labels = np.array([np.ones(size=size[i]) * i
