@@ -17,9 +17,8 @@ from environments.cartpole import CartPoleEnv
 
 INITIAL_GEN_SIZE = 100
 NUM_GENERATIONS = 10
-num_elite = 10
+NUM_ELITE = 10
 NUM_CHILDREN_PER_PARENT_COMB = 2
-
 MUTATION_PROB = 0.05
 
 
@@ -32,7 +31,7 @@ class EvolutionSearch(BaseLearner):
         # Number of generations to run for
         self.num_generations = NUM_GENERATIONS
         # Number of parents to keep each generation
-        self.num_elite = num_elite
+        self.num_elite = NUM_ELITE
         # Number of children each generation
         self.num_children_per_parent_comb = NUM_CHILDREN_PER_PARENT_COMB
         # Probability of mutation
