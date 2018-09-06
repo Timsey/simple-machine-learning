@@ -88,7 +88,7 @@ class RandomSearch(BaseLearner):
 
 if __name__ == '__main__':
     env = CartPoleEnv()
-    env = FrozenLakeEnv()
+    # env = FrozenLakeEnv()
     learner = RandomSearch(env)
 
     learner.train(num_policies=500, max_t=100)

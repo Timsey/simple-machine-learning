@@ -70,7 +70,6 @@ class FrozenLakeEnv(BaseEnv):
         row = state % 4
         col = state // 4
 
-        print(state, self.grid[row][col], action)
         # Do a step on the grid as given by action
         # TODO: Add slipperyness
         if action == 0:  # up
