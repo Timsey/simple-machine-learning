@@ -11,6 +11,7 @@ from base_learner import BaseLearner
 
 sys.path.append("..")  # noqa: F401
 from environments.cartpole import CartPoleEnv
+from environments.frozenlake import FrozenLakeEnv
 
 # Number of random policies to generate during training
 NUM_POLICIES = 500
@@ -40,7 +41,7 @@ class RandomSearch(BaseLearner):
                 'state_size'] + 1)
         elif self.env_info['policy_type'] == 'grid':
             # Random policy that gives an action (int) for every possible state
-            policy = np.random.choice(self.action_space,
+            policy = np.random.choice(self.env_info['action_space'],
                                       size=self.env_info['state_size'])
         return policy
 
@@ -61,10 +62,22 @@ class RandomSearch(BaseLearner):
             self.num_policies = num_policies
         if max_t is not None:
             self.max_t = max_t
-            self.max_reward = self.env.max_reward_per_episode * self.max_t
+            # Maximum possible reward given the environment
+            if (self.env.max_reward_per_timestep is None
+                and self.env.max_reward_per_episode is None):
+                raise ValueError("Either max_reward_per_timestep or "
+                                 "max_reward_per_episode needs to be set.")
+            elif (self.env.max_reward_per_timestep is None
+                  and self.env.max_reward_per_episode is None):
+                raise ValueError("Either max_reward_per_timestep or "
+                                 "max_reward_per_episode needs to be None.")
+            elif self.env.max_reward_per_timestep is not None:
+                self.max_reward = self.env.max_reward_per_timestep * self.max_t
+            else:
+                self.max_reward = self.env.max_reward_per_episode
 
         # Try num_policies random policies
-        for i in range(self.num_policies):
+        for _ in range(self.num_policies):
             policy = self.get_policy()
             score = self.episode(policy)
             # Keep track of best policy
@@ -75,7 +88,8 @@ class RandomSearch(BaseLearner):
 
 if __name__ == '__main__':
     env = CartPoleEnv()
+    env = FrozenLakeEnv()
     learner = RandomSearch(env)
 
     learner.train(num_policies=500, max_t=100)
-    learner.evaluate(learner.best_policy, do_show=False, average=100)
+    learner.evaluate(learner.best_policy, do_show=False, average=100, max_t=20)

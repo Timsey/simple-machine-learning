@@ -6,12 +6,15 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+from .base_environment import BaseEnv
 
-class CartPoleEnv(object):
+
+class CartPoleEnv(BaseEnv):
     def __init__(self):
         """
         Initialise the CartPole environment.
         """
+        super().__init__()
 
         self.gravity = 9.81
         self.mass_cart = 1.0
@@ -26,45 +29,28 @@ class CartPoleEnv(object):
         self.max_theta = 12 * 2 * math.pi / 360
         self.max_x = 2.4
 
-        # Initialise environment for learning
-        self.state = self.reset()
-
         # Define the info the learners need to interact with the environment
         self.env_info = {'policy_type': 'binary',  # separating hyperplane
                          'action_space':  [0, 1],  # left and right
                          'state_size': 4}  # x, x_dot, theta, theta_dot
-        # # Example for Frozen Lake
-        # self.env_info = {'policy_type': 'grid',
-        #                  'action_space': [1, 2, 3, 4],
-        #                  'state_size': 16}
-        # # Example for (e.g.) Pong through image instead of specific features
-        # self.env_info = {'policy_type': 'function',
-        #                  'action_space': [0, 1],
-        #                  'state_size': IMAGE_DIMENSION}
+        self.max_reward_per_timestep = 1.0
 
-        self.max_reward_per_episode = 1.0
+        # Initialise environment for learning
+        self.state = self.reset()
 
-    def set_seed(self, seed=None):
+    def reset(self):
         """
-        Sets the random seed by calling np.random.seed(seed) and sets
-        self.seed to the value of seed.
-        """
-
-        if seed is None:
-            seed = 0
-        np.random.seed(seed)
-        self.seed = seed
-
-    def get_seed(self):
-        """
-        Get the random seed. Note that this will fail to produce the correct
-        seed if the seed was not set through this class' get_seed() function.
+        Resets the enviroment. Should be called after every episode of a
+        learning procedure.
 
         Returns:
-        - self.seed: last set random seed.
+        - self.state: np.array, represents the current state of the
+                      environment (after reset).
         """
-
-        return self.seed
+        self.state = np.random.uniform(-0.05, 0.05,
+                                       size=self.env_info['state_size'])
+        self.done = False
+        return self.state
 
     def step(self, action):
         """
@@ -89,8 +75,8 @@ class CartPoleEnv(object):
         - done: bool, whether the episode should finish after this step (i.e.
                 the pole has dropped too far).
         """
-
-        assert action in (0, 1), "action must be 0 (left) or 1 (right)"
+        assert action in (0, 1), ("action must be 0 (left) or 1 (right); "
+                                  "not {}.".format(action))
 
         # Check if already finished
         if self.done:
@@ -136,29 +122,13 @@ class CartPoleEnv(object):
         done = (x < -self.max_x or x > self.max_x or
                 theta < -self.max_theta or theta > self.max_theta)
 
-        if not done:
-            # Still going strong!
-            reward = 1.0
-        else:
+        if done:
             # Pole has fallen!
-            self.done = False
             reward = 0.0
+        else:
+            reward = 1.0
 
         return self.state, reward, done
-
-    def reset(self):
-        """
-        Resets the enviroment. Should be called after every episode of a
-        learning procedure.
-
-        Returns:
-        - self.state: np.array, represents the current state of the
-                      environment (after reset).
-        """
-
-        self.state = np.random.uniform(-0.05, 0.05, size=4)
-        self.done = False
-        return self.state
 
     def render_state(self, state):
         """
@@ -182,7 +152,7 @@ class CartPoleEnv(object):
 
         plt.plot([x, x_pole_top], [y, y_pole_top])
         plt.ylim(0, y + 2.5 * self.length)
-        plt.xlim(- self.length, self.length)
+        plt.xlim(-self.length, self.length)
         plt.show(block=False)
         plt.pause(0.08)
         plt.close()

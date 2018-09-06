@@ -1,6 +1,5 @@
 """
-Agent that learns by random search. Works for environments with action spaces
-of size 2 (binary).
+Base learner on which other reinforcement learners are based.
 """
 
 import sys
@@ -29,7 +28,18 @@ class BaseLearner(object):
         # Time to run the environment for during training and evaluation
         self.max_t = MAX_T
         # Maximum possible reward given the environment
-        self.max_reward = self.env.max_reward_per_episode * self.max_t
+        if (self.env.max_reward_per_timestep is None
+            and self.env.max_reward_per_episode is None):
+            raise ValueError("Either max_reward_per_timestep or "
+                             "max_reward_per_episode needs to be set.")
+        elif (self.env.max_reward_per_timestep is None
+              and self.env.max_reward_per_episode is None):
+            raise ValueError("Either max_reward_per_timestep or "
+                             "max_reward_per_episode needs to be None.")
+        elif self.env.max_reward_per_timestep is not None:
+            self.max_reward = self.env.max_reward_per_timestep * self.max_t
+        else:
+            self.max_reward = self.env.max_reward_per_episode
 
     def policy_to_action(self, policy, obs):
         """
@@ -64,17 +74,19 @@ class BaseLearner(object):
             # Every state gets assigned an action (e.g. through softmax)
             raise NotImplementedError('This state type is not yet supported.')
 
-    def episode(self, policy, do_show=False):
+    def episode(self, policy, do_show=False, max_t=MAX_T):
         """
         Runs an episode of the policy in the environment.
 
         Arguments:
         - policy: np.array, represents the policy to run.
         - do_show: bool, whether to visualise the episode during evaluation.
+        - max_t: number of steps in an episode.
 
         Returns:
         - total_reward: float, reward earned during the episode.
         """
+        self.max_t = max_t
 
         total_reward = 0
         obs = self.env.reset()
@@ -88,12 +100,17 @@ class BaseLearner(object):
             if do_show:
                 self.env.render_obs(obs)
 
-            if done:
+            if done:  # Episode ended
+                self.env.done = True
                 break
+
+        # Episode ended
+        self.env.done = True
 
         return total_reward
 
-    def evaluate(self, policy, do_print=True, do_show=False, average=0):
+    def evaluate(self, policy, do_print=True, do_show=False, average=0,
+                 max_t=MAX_T):
         """
         Evaluates the given policy.
 
@@ -104,6 +121,7 @@ class BaseLearner(object):
         - average: int, how many episodes to average to get a score. Values
                    greater than 1 for this argument cannot be combined with
                    do_show.
+        - max_t: int, number of timesteps in an episode.
 
         Returns:
         - score: float, (average) score of the policy.
@@ -111,6 +129,12 @@ class BaseLearner(object):
 
         assert isinstance(average, int) and average >= 0, 'average should be '
         'a positive integer or zero!'
+
+        if policy is None:
+            raise ValueError("Policy is None; it may be the case that the "
+                             "learner found no policy with score above 0.")
+        self.max_t = max_t
+
         if average not in [0, 1]:
             if do_show:
                 print('WARNING: do_show has no effect while average is > 1. '

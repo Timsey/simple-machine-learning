@@ -85,15 +85,10 @@ def create_nd_dummy_data(data_params, labeled=False, mode='gauss', size=1000):
              (N, 1), where N is the total number of elements generated.
     """
     assert isinstance(data_params, list), "data_params must be a list."
-
-    # -------------
-    # NOTE: Between lines is the only part that is different from 1d data
-    # generator (besides mode). Data creators should probably be combined.
     assert isinstance(data_params[0], list), ("data_params must be a list "
                                               "of lists.")
     # Make data_params a list of lists of lists for consistency
     if not isinstance(data_params[0][0], list):
-    # -------------
         data_params = [data_params]
         if isinstance(size, list) and len(size) != 1:
             raise ValueError("size should be an int or list of length 1 if "
